@@ -1,2 +1,2 @@
 # Cloud-and-DevOps-Projects
-All cloud and deops related projects.
+All cloud and devops related projects.
