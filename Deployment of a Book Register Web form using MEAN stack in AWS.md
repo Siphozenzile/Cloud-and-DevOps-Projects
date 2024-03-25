@@ -62,7 +62,7 @@ Package has no installation (for mongodb)
 Folow the steps in this website : https://www.cherryservers.com/blog/install-mongodb-ubuntu-22-04
 
 
-## Step 1: Step 1 : Launch a new EC2 instance and connect using EC2 instace connect (CLI)
+## Step 1 : Launch a new EC2 instance and connect using EC2 instace connect (CLI)
 
 Launch a new EC2 machine, use Ubuntu OS and connect to EC2 using the CLI (EC2 instance connect) and then press connect.
 
