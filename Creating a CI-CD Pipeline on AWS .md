@@ -1,6 +1,6 @@
 # Creating a simple CI/CD Pipeline on AWS 
 
-### The purpose of this project is to create a simple CI/CD Pipeline using Git, Jenkins, Ansible, Docker and Kubernetes on AWS.
+The purpose of this project is to create a simple CI/CD Pipeline using Git, Jenkins, Ansible, Docker and Kubernetes on AWS.
 
 ### Steps : CI/CD Pipeline
 
