@@ -147,6 +147,196 @@ mvn --version
    Navigate to :- Manage Jenkins > Global Configuration Tools > Maven (choose version)
 
    ![image](https://github.com/Siphozenzile/Cloud-and-DevOps-Projects/assets/161639765/ef66621b-fe53-4855-b00a-14d56c4ed35a)
+   
+
+## Step 3 : Integrating Tomcat_Server into the CI/CD pipeline
+
+Apache Tomcat is an open-source implementation of the Java Servlet, JavaServer Pages, Java Expression Language, and Java WebSocket technologies. It acts as a web server and a Java servlet container, allowing Java code to run dynamically to generate web pages. In this step we install it on EC2 instance and integrate into the CI/CD pipeline.
+
+**Pre-requisite**
+
+1. EC2 instance with Java 11 and SSH via (Mobaxterm or Putty)
+
+### Install Apache Tomcat
+
+1. Download tomcat packages from https://tomcat.apache.org/download-80.cgi onto /opt on EC2 instance :
+```
+# Create tomcat directory
+cd /opt
+
+# Download using the command :
+wget http://mirrors.fibergrid.in/apache/tomcat/tomcat-8/v8.5.35/bin/apache-tomcat-8.5.35.tar.gz
+tar -xvzf /opt/apache-tomcat-<version>.tar.gz
+```
+
+2. Give executing permissions to startup.sh and shutdown.sh which are under bin :
+```
+chmod +x /opt/apache-tomcat-8.5.35/bin/startup.sh
+chmod +x /opt/apache-tomcat-8.5.35/bin/shutdown.sh
+```
+
+3. Create link files for tomcat startup.sh and shutdown.sh :
+   
+```
+ln -s /opt/apache-tomcat-<version>/bin/startup.sh /usr/local/bin/tomcatup
+ln -s /opt/apache-tomcat-<version>/bin/shutdown.sh /usr/local/bin/tomcatdown
+tomcatup
+```
+
+Now we can access tomcat application from browser on port 8080 :
+
+ - http://<Public_IP>:8090 (75.101.171.209:8090)
+
+![Screenshot (117)](https://github.com/Siphozenzile/Cloud-and-DevOps-Projects/assets/161639765/f7d318e6-6edb-40aa-8c65-f4efc09c3fd2)
+
+**Access Tomcat from browser**
+
+
+1. Now our application is accessible on port 8080. but tomcat application doesnt allow to login from browser. We will change a default parameter in context.xml to address this issue :
+
+```
+#search for context.xml
+find / -name context.xml
+```
+
+2. The above command gives 3 context.xml files. comment () Value ClassName field on files which are under webapp directory. After that restart tomcat services to effect these changes. At the time of writing this lecture below 2 files are updated :
+```
+/opt/tomcat/webapps/host-manager/META-INF/context.xml
+/opt/tomcat/webapps/manager/META-INF/context.xml
+
+# Restart tomcat services
+tomcatdown  
+tomcatup
+```
+
+3. Update users information in the tomcat-users.xml file goto tomcat home directory and Add below users to conf/tomcat-users.xml file :
+
+```
+ <role rolename="manager-gui"/>
+ <role rolename="manager-script"/>
+ <role rolename="manager-jmx"/>
+ <role rolename="manager-status"/>
+ <user username="admin" password="admin" roles="manager-gui, manager-script, manager-jmx, manager-status"/>
+ <user username="deployer" password="deployer" roles="manager-script"/>
+ <user username="tomcat" password="s3cret" roles="manager-gui"/>
+```
+
+4. Restart serivce and try to login to tomcat application from the browser. Navigate to manager app to check it work. You should get the following output :
+
+![Screenshot (118)](https://github.com/Siphozenzile/Cloud-and-DevOps-Projects/assets/161639765/1d5c1324-e33e-489f-951f-a3b09d105b07)
+
+**Exercise : Deploying on Tomcat Server** 
+
+In this exercise we deploy a war file on tomcat using jenkins (the pictures are output):
+
+![Screenshot (120)](https://github.com/Siphozenzile/Cloud-and-DevOps-Projects/assets/161639765/2972a08a-016e-42af-ac0e-9e5d4de21b00)
+
+![Screenshot (121)](https://github.com/Siphozenzile/Cloud-and-DevOps-Projects/assets/161639765/c8d95f70-2c75-4369-8554-092dedfd5805)
+
+![Screenshot (122)](https://github.com/Siphozenzile/Cloud-and-DevOps-Projects/assets/161639765/77b06879-7238-4a0f-b368-14fc7ca2bfa0)
+
+Output from the browser :
+
+![Screenshot (123)](https://github.com/Siphozenzile/Cloud-and-DevOps-Projects/assets/161639765/cf9c7d82-3c9e-48db-be81-d38a6a7ef52d)
+
+
+## Step 4 : Integrating Docker (CI/CD)
+
+In this step we install docker on a Linux Server and integrate to the CI/CD. 
+
+**Pre-requisites**
+
+1. Amazon linux EC2 instance and SSH via (Putty or Mobaxterm)
+
+### Installation Steps :
+
+1. Install docker and start docker services.
+
+```
+yum install docker -y
+docker --version 
+
+# start docker services
+service docker start
+service docker status
+```
+
+2. Create a user called dockeradmin.
+
+```
+useradd dockeradmin
+passwd dockeradmin
+```
+3. Add a user to docker group to manage docker.
+
+```
+usermod -aG docker dockeradmin
+```
+
+**Validation test**
+
+```
+docker run -d --name test-tomcat-server -p 8090:8080 tomcat:latest
+```
+
+ - **Integrating docker host with Jenkins**:
+
+-Navigate to Jenkins manage > plugins > available > publish over ssh (install this plugin)
+
+-Create dockeradmin on your linux terminal
+
+-Add docker host under SSH Server on jenkins
+
+![image](https://github.com/Siphozenzile/Cloud-and-DevOps-Projects/assets/161639765/fa7aef08-b424-470e-8b9b-fb487c77bd8e)
+
+![Screenshot (127)](https://github.com/Siphozenzile/Cloud-and-DevOps-Projects/assets/161639765/b1ab9291-da77-4b9a-a532-9e4e625da165)
+
+**Execirse 1** : Deploying on Docker 
+
+See output :
+
+![Screenshot (129)](https://github.com/Siphozenzile/Cloud-and-DevOps-Projects/assets/161639765/5c8e27d8-e498-404b-bc7e-99f822658716)
+
+![Screenshot (130)](https://github.com/Siphozenzile/Cloud-and-DevOps-Projects/assets/161639765/b3d868fc-ee22-4b8b-af07-22729043545c)
+
+![Screenshot (131)](https://github.com/Siphozenzile/Cloud-and-DevOps-Projects/assets/161639765/296e5c8a-9c37-4fd2-874a-602ed1a40004)
+
+**Exercise 2** : Deploying on Docker container
+
+See output : 
+
+From a dockerfile, we can create a docker image from a docker image, we can create a docker container.
+
+![Screenshot (132)](https://github.com/Siphozenzile/Cloud-and-DevOps-Projects/assets/161639765/70aa67c8-6f36-42cc-9d01-a82c49a2855e)
+
+![Screenshot (133)](https://github.com/Siphozenzile/Cloud-and-DevOps-Projects/assets/161639765/35d6e9ee-d82c-4321-8e71-8711140be6aa)
+
+![Screenshot (134)](https://github.com/Siphozenzile/Cloud-and-DevOps-Projects/assets/161639765/31a820ed-e483-44bf-a81e-5ff7e4b33fa4)
+
+![Screenshot (135)](https://github.com/Siphozenzile/Cloud-and-DevOps-Projects/assets/161639765/97111296-4384-44e8-a972-972b4797328e)
+
+
+## Step 4 : Integrating Ansible into the CI/CD
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
