@@ -316,7 +316,7 @@ From a dockerfile, we can create a docker image from a docker image, we can crea
 ![Screenshot (135)](https://github.com/Siphozenzile/Cloud-and-DevOps-Projects/assets/161639765/97111296-4384-44e8-a972-972b4797328e)
 
 
-## Step 4 : Integrating Ansible into the CI/CD
+## Step 5 : Integrating Ansible into the CI/CD
 
 
 
