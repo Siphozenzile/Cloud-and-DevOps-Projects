@@ -318,6 +318,260 @@ From a dockerfile, we can create a docker image from a docker image, we can crea
 
 ## Step 5 : Integrating Ansible into the CI/CD
 
+While Jenkins can be used for deployments, it may not always be the best choice for certain deployment scenarios (especially for large-scale or complex deployment pipelines), in that case companies require a specialized deploymenet tool. In this step we install and integrate Ansible, which is an open-source automation platform designed for configuration management, application deployment and task automation. :
+
+### Ansible Installation :
+
+1. Lauch new Linux Amzon EC2 instance and connect via SSH (Check Below) :
+
+![Screenshot (173)](https://github.com/Siphozenzile/Cloud-and-DevOps-Projects/assets/161639765/a206762c-a587-47d7-b02a-0090ac6b8cd4)
+
+![Screenshot (174)](https://github.com/Siphozenzile/Cloud-and-DevOps-Projects/assets/161639765/5ca9e856-5766-45af-a395-379979ae36e3)
+
+![Screenshot (175)](https://github.com/Siphozenzile/Cloud-and-DevOps-Projects/assets/161639765/d007dfe2-f8de-4b4a-9848-e1518a560ae4)
+
+2. Install python and python-pip :
+
+```
+yum install python
+yum install python-pip
+```
+
+3. Install ansible using pip check for version :
+
+```
+pip install ansible
+ansible --version
+```
+
+![Screenshot (168)](https://github.com/Siphozenzile/Cloud-and-DevOps-Projects/assets/161639765/a0f2db08-01be-4927-9dce-8761f0841153)
+
+4. Create a user called ansadmin (on Control node and Managed host) :
+
+```
+useradd ansadmin
+passwd ansadmin
+```
+
+5. Below command grant sudo access to ansadmin user. (on Control node and Managed host) :
+
+```
+echo "ansadmin ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+```
+
+6. Log in as a ansadmin user on master and generate ssh key (on Control node) :
+
+```
+sudo su - ansadmin
+ssh-keygen
+```
+
+7. Copy keys onto all ansible managed hosts (on Control node) :
+
+```
+ssh-copy-id ansadmin@<target-server>
+```
+
+8. Ansible server used to create images and store on docker registry. Hence install docker, start docker services and add ansadmin to the docker group :
+
+```
+yum install docker
+
+# start docker services 
+service docker start
+service docker start 
+
+# add user to docker group 
+usermod -aG docker ansadmin
+```
+
+9. Create a directory /etc/ansible and create an inventory file called "hosts" add control node and managed hosts IP addresses to it :
+
+**Integrating Ansible with Jenkins**
+
+- Install "publish Over SSH" :
+
+Navigate to :- Manage Jenkins > Plugins > available pluginss > publish over SSh (Search and Install)
+
+- Enable connection between Ansible-control-node and Jenkins :
+
+Navigate to :-  Manage Jenkins > System COnfiguration > SSH Server >
+
+![Screenshot (170)](https://github.com/Siphozenzile/Cloud-and-DevOps-Projects/assets/161639765/8ec98411-79f9-483a-8861-94aa0653b5a6)
+
+![Screenshot (171)](https://github.com/Siphozenzile/Cloud-and-DevOps-Projects/assets/161639765/1d9ac26d-5d27-4f67-a611-80ef092de1c6)
+
+**Jenkins Job : Deploy on Container using Ansible** 
+
+From Jenkins home page select "New Item"
+
+- Enter an item name: Deploy_on_Container_using_ansible
+
+- Source Code Management:
+
+             -Repository: https://github.com/yankils/hello-world.git
+             -Branches to build : */master
+  
+- Poll SCM : - * * * *
+  
+to automate your deployment when there's a new commit 
+
+- Build:
+  
+          -Root POM:pom.xml
+          -Goals and options: clean install package
+
+- Post-build actions :
+
+      Send build artifacts over SSH
+          SSH Publishers
+          SSH Server Name: ansible-server
+          Transfers > Transfer set
+              > Source files: webapp/target/*.war
+              > Remove prefix: webapp/target
+              > Remote directory: //opt//docker
+              Exec command:
+  ```
+  ansible-playbook -i /opt/docker/hosts /opt/docker/create-docker-image.yml;
+  ```
+
+  Save and run the job now.
+
+
+## Step 6 : Integrating Kubernates (CI/CD)
+
+Kubernetes is an open-source platform for automating the deployment, scaling, and management of containerized applications. It provides a container orchestration framework that allows you to efficiently deploy, manage, and scale containerized workloads across a cluster of machines. In this step we setup Kubernates on AWS and integrate with CI/CD.
+
+### **Setup Kubernetes (K8s) Cluster on AWS**
+
+1. Create Ubuntu EC2 instance
+
+![Screenshot (177)](https://github.com/Siphozenzile/Cloud-and-DevOps-Projects/assets/161639765/1342479d-af4f-450f-b3bc-b6eacb3865cd)
+
+![Screenshot (178)](https://github.com/Siphozenzile/Cloud-and-DevOps-Projects/assets/161639765/eb6d38c7-f004-405d-80f2-b9427c67b954)
+
+2. Install AWSCLI :
+```
+ curl https://s3.amazonaws.com/aws-cli/awscli-bundle.zip -o awscli-bundle.zip
+ sudo apt update
+ sudo apt install unzip python
+ unzip awscli-bundle.zip
+ #sudo apt-get install unzip - if you dont have unzip in your system
+ ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
+```
+
+![Screenshot (179)](https://github.com/Siphozenzile/Cloud-and-DevOps-Projects/assets/161639765/2b5daf11-3e90-4b81-b068-d10412009101)
+
+![Screenshot (180)](https://github.com/Siphozenzile/Cloud-and-DevOps-Projects/assets/161639765/f8318df7-71be-41a9-b85d-618573bb2c9a)
+
+3. Install kubectl on ubuntu instance :
+```
+curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+ chmod +x ./kubectl
+ sudo mv ./kubectl /usr/local/bin/kubectl
+
+```
+![Screenshot (181)](https://github.com/Siphozenzile/Cloud-and-DevOps-Projects/assets/161639765/9497bf08-dc43-4f33-a899-b6cefc7f1fa5)
+
+
+4. Install Kops on Ubuntu Instance
+
+```
+ curl -LO https://github.com/kubernetes/kops/releases/download/$(curl -s https://api.github.com/repos/kubernetes/kops/releases/latest | grep tag_name | cut -d '"' -f 4)/kops-linux-amd64
+ chmod +x kops-linux-amd64
+ sudo mv kops-linux-amd64 /usr/local/bin/kops
+```
+
+5. Create an IAM user/role with Route53, EC2, IAM and S3 full access
+
+   ![image](https://github.com/Siphozenzile/Cloud-and-DevOps-Projects/assets/161639765/d56d317a-5e37-4277-af75-fd45bde80a17)
+
+   ![Screenshot (183)](https://github.com/Siphozenzile/Cloud-and-DevOps-Projects/assets/161639765/62daca84-978a-4ba4-b248-1496bfc0939d)
+
+6. Create a Route53 private hosted zone (you can create Public hosted zone if you have a domain)
+
+```
+Routeh53 --> hosted zones --> created hosted zone  
+Domain Name: valaxy.net
+Type: Private hosted zone for Amzon VPC
+```
+
+7. Create an S3 bucket :
+```
+ aws s3 mb s3://demo.kubernates.valaxy.net
+```
+
+![image](https://github.com/Siphozenzile/Cloud-and-DevOps-Projects/assets/161639765/b22c599e-ded9-4583-846c-7c2456992743)
+
+8. Expose environment variable:
+
+```
+ export KOPS_STATE_STORE=s3://demo.kubernates.valaxy.net
+```
+
+9. Create sshkeys before creating cluster
+
+```
+ ssh-keygen
+```
+
+10. Create kubernetes cluster definitions on S3 bucket :
+```
+kops create cluster --cloud=aws --zones=us-east-1 --name=demo.kubernates.valaxy.net --dns-zone=valaxy.net --dns private
+```
+
+11. Create kubernetes cluser :
+```
+kops update cluster demo.kubernates.valaxy.net --yes
+```
+
+12. Validate your cluster
+
+```
+ kops validate cluster
+```
+
+13. To lists nodes :
+
+```
+kubectl get nodes
+```
+
+**Deploying Nginx pods on Kubernetes**
+
+- Deploying Nginx Container
+```
+kubectl create deploy sample-nginx --image=nginx --replicas=2 --port=80
+# kubectl deploy simple-devops-project --image=yankils/simple-devops-image --replicas=2 --port=8080
+kubectl get all
+kubectl get pod
+```
+
+- Expose the deployment as service. This will create an ELB in front of those 2 containers and allow us to publicly access them.
+
+```
+kubectl expose deployment sample-nginx --port=80 --type=LoadBalancer
+# kubectl expose deployment simple-devops-project --port=8080 --type=LoadBalancer
+kubectl get services -o wide
+``
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
