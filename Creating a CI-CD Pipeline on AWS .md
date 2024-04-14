@@ -11,6 +11,8 @@ The purpose of this project is to create a simple CI/CD Pipeline using Git, Jenk
 5. Integrating Ansible (CI/CD)
 6. Integrating Kubernates (CI/CD)
 
+![image](https://github.com/Siphozenzile/Cloud-and-DevOps-Projects/assets/161639765/9a6ce28f-9b4f-49af-865f-cc25c2d811e6)
+
 
 ## Step 1 : Jenkins Installation on AWS EC2
 
