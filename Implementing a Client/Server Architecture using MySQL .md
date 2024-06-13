@@ -1,4 +1,4 @@
-# Implementing a basic client/server architecture using MySQL 
+# Implementing a basic client/server architecture using MySQL.. 
 
 Client-Server refers to an architecture in which two or more computers are connected together over a network to send and receive requests between one another.
 
