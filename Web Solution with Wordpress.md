@@ -1,4 +1,4 @@
-# Configure Linux Storage and Deploy a Web Solution using Wordpress
+# Configure Linux Storage Subsystem and Deploy a Web Solution using Wordpress
 
 In this project you will be tasked to prepare storage infrastructure on two Linux servers and implement a basic web solution using WordPress. WordPress is a free and open-source content management system written in PHP and paired with MySQL or MariaDB as its backend Relational Database Management System (RDBMS).
 
@@ -172,4 +172,80 @@ setsebool -P httpd_execmem 1
 5 Restart Apache
 
 ``` sudo systemctl restart httpd ```
+
+6. Download wordpress and copy wordpress to var/www/html.
+
+```
+  mkdir wordpress
+  cd   wordpress
+  sudo wget http://wordpress.org/latest.tar.gz
+  sudo tar xzvf latest.tar.gz
+  sudo rm -rf latest.tar.gz
+  cp wordpress/wp-config-sample.php wordpress/wp-config.php
+  cp -R wordpress /var/www/html/
+```
+
+7. Configure SELinux Policies.
+
+```
+sudo yum update
+sudo yum install mysql-server
+```
+
+## Install MySQL on your DB Server EC2
+```
+sudo yum update
+sudo yum install mysql-server
+```
+Verify that the service is up and running by using sudo systemctl status mysqld, if it is not running, restart the service and enable it so it will be running even after reboot:
+```
+sudo systemctl restart mysqld
+sudo systemctl enable mysqld
+```
+- Configure DB to work with wordpress
+```
+sudo mysql
+CREATE DATABASE wordpress;
+CREATE USER `myuser`@`<Web-Server-Private-IP-Address>` IDENTIFIED BY 'mypass';
+GRANT ALL ON wordpress.* TO 'myuser'@'<Web-Server-Private-IP-Address>';
+FLUSH PRIVILEGES;
+SHOW DATABASES;
+exit
+
+```
+![Screenshot (455)](https://github.com/user-attachments/assets/74ef29ed-0f1e-47d9-a7aa-e307e3602fea)
+
+- Configure WordPress to connect to remote database. Hint: Do not forget to open MySQL port 3306 on DB Server EC2. For extra security, you shall allow access to the DB server ONLY from your Web Server’s IP address, so in the Inbound Rule configuration specify source as /32.
+
+1. Install MySQL client and test that you can connect from your Web Server to your DB server by using mysql-client
+
+```
+sudo yum install mysql
+sudo mysql -u admin -p -h <DB-Server-Private-IP-address>
+```
+
+2. Verify if you can successfully execute SHOW DATABASES; command and see a list of existing databases.
+3. Change permissions and configuration so Apache could use WordPress:
+4. Enable TCP port 80 in Inbound Rules configuration for your Web Server EC2 (enable from everywhere 0.0.0.0/0 or from your workstation’s IP)
+5. Try to access from your browser the link to your WordPress.
+
+http://< public Ip >/wordpress/
+
+![Screenshot (456)](https://github.com/user-attachments/assets/ea5946cf-6643-43c1-92f6-d0abd82be659)
+
+![Screenshot (457)](https://github.com/user-attachments/assets/7b0960f1-ff8b-4be7-aa09-6d74d5fa0732)
+
+![Screenshot (458)](https://github.com/user-attachments/assets/aeb89e6c-cb20-4c9d-8973-5f0311b6623d)
+
+![Screenshot (459)](https://github.com/user-attachments/assets/a98bbb22-d89b-4bc8-a817-5f05091aea7d)
+
+
+### Important: STOP your EC2 instances after completion of the project to avoid extra costs.
+
+### We have successfully configured linux storage subsystem and have also deployed a web solution using wordpress CMS and MySQL RDBMS!.
+
+
+
+
+
  
